@@ -1,6 +1,6 @@
 """ Exists at `/auth` and allows for authentication against Olin's LDAP server """
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_restful import Resource, Api
 
 # Blueprint setup

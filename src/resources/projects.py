@@ -25,5 +25,3 @@ class Project(Resource):
 
 # Resources
 api.add_resource(Project, '/')
-
-
