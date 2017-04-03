@@ -9,6 +9,6 @@ class Person(Document):
     """
     fName = StringField(max_length = 240, required = True)
     lName = StringField(max_length = 240, required = True)
-    communityYear = StringField()
+    communityYear = IntField()
     #Once we make a user, we can probably reference that user in another document by putting a Person object into a ReferenceField.
 
