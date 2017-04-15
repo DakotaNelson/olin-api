@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from flask_restful import Resource, Api
 from mongoengine.errors import DoesNotExist
-from ..document_models import Token
+from ..document_models import Token, Application
 from ..utils import send_email
 
 # Blueprint setup
@@ -24,6 +24,15 @@ class RequestToken(Resource):
         if not 'email' in params:
             resp = {'message': 'Request must include \'email\' parameter.'}
             return make_response(jsonify(resp), 400)
+
+        if not 'apptoken' in params:
+            resp = {'message': 'Request must include \'apptoken\' parameter.'}
+            return make_response(jsonify(resp), 400)
+
+        app = Application.verify_token(params['apptoken'])
+        if app is None:
+            resp = {'message': 'Application token is invalid.'}
+            return make_response(jsonify(resp), 401)
 
         # try to find a matching token that already exists, or create a new one
         # could do an upsert here, but it'd be less readable
@@ -77,7 +86,8 @@ class ValidateToken(Resource):
         requester's email address), check that it is good, then mark the
         corresponding token as valid """
         if Token.verify_validation_token(token):
-            resp = 'Success! Thanks!' # TODO better message/page for user?
+            resp = 'Success! Thanks!'
+            # TODO better message/page for user? include name of authorized app?
             return resp, 200
         else:
             resp = 'Unable to validate authentication token. Your validation token is either invalid or expired.'
