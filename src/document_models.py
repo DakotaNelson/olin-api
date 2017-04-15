@@ -1,7 +1,7 @@
 """ Contains all of the mongoengine models for data held in mongo """
 from flask import current_app
 
-from mongoengine import (Document, StringField, IntField, ListField,
+from mongoengine import (Document, StringField, IntField,
                          DictField, EmailField, BooleanField, DoesNotExist,
                          URLField)
 
@@ -12,6 +12,8 @@ from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
 
 class Person(Document):
     """
+    Represents a real, actual, honest-to-goodness person.
+
     Fields:
     fName           First Name. Required.
                     Takes a string with maximum length 240.
@@ -44,13 +46,15 @@ class Person(Document):
     preferredName = StringField(max_length=240)
     services = DictField()
 
-    # TODO:
+    # TODO: other fields
     # add role at Olin
     # BOW students?
     # allergies/diet
     # image/gravatar
 
 class Token(Document):
+    """ Represents an authorization token that allows a user to delegate a client
+    application access to the Olin API on their behalf. """
     email = EmailField(max_length=100, required=True, unique=True)
     # 'validated' is marked as true once the user has confirmed they own the
     # email address the validation token is sent to
@@ -118,6 +122,7 @@ class Token(Document):
         return True
 
 class Application(Document):
+    """ Represents a client application developed to use the Olin API. """
     # who can we contact about this application?
     contact = EmailField(max_length=100, required=True)
     # what is the application's name? (one contact can't have two identically
@@ -132,7 +137,8 @@ class Application(Document):
         """ Generate an authentication token, by default good for ~4 years """
         serializer = Serializer(
             current_app.config['SECRET_KEY'], expires_in=expiration)
-        return serializer.dumps({'contact': self.contact, 'name': self.name}).decode(encoding='UTF-8')
+        return serializer.dumps({'contact': self.contact, 'name': self.name}) \
+                         .decode(encoding='UTF-8')
 
     @staticmethod
     def verify_token(token):
@@ -148,4 +154,3 @@ class Application(Document):
         # otherwise, success!
         app = Application.objects.get(contact=data['contact'], name=data['name'])
         return app
-

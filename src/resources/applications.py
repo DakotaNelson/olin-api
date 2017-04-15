@@ -13,6 +13,12 @@ api = Api(apps)
 
 class RegisterApp(Resource):
     def post(self):
+        """ Allows a user to register a client application with the Olin API.
+        This will grant them an application token which can later be used to
+        either access client-specific resources or request an authorization
+        token that will grant the application access to the API on a user's
+        behalf. """
+
         params = request.get_json()
 
         # application point of contact email
@@ -31,7 +37,7 @@ class RegisterApp(Resource):
             return make_response(jsonify(resp), 400)
 
         # TODO conversion to bool is gross and mistake-prone
-        if not bool(params['honorcode']) == True:
+        if  bool(params['honorcode']) != True:
             # TODO include link to honor code
             resp = {'message': 'You must agree to the Olin API Honor Code in order to use the Olin API.'}
             return make_response(jsonify(resp), 400)

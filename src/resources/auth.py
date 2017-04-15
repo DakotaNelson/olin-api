@@ -48,17 +48,19 @@ class RequestToken(Resource):
             validation_token = token.generate_validation_token()
 
             validation_url = api.url_for(ValidateToken,
-                token=validation_token,
-                _external=True)
+                                         token=validation_token,
+                                         _external=True)
 
             send_email(params['email'],
                        "Here's your Olin-API validation token",
                        "<a href=\"{}\">Click here</a>".format(validation_url))
 
-            resp = {'message': 'Success! Token will be valid once email has been proven.', 'token': token_value, "validated": False}
+            resp = {'message': 'Success! Token will be valid once email has been proven.',
+                    'token': token_value, "validated": False}
         else:
             # token is already valid
-            resp = {'message': 'Success! Email has already been proven, so you\'re good to go.', 'token': token_value, "validated": True}
+            resp = {'message': 'Success! Email has already been proven, so you\'re good to go.',
+                    'token': token_value, "validated": True}
         return make_response(jsonify(resp), 200)
 
     def delete(self):
@@ -71,7 +73,7 @@ class RequestToken(Resource):
             resp = {'message': 'Request must include \'email\' parameter.'}
             return make_response(jsonify(resp), 400)
 
-        token = Token.objects(email=params['email']).delete()
+        Token.objects(email=params['email']).delete()
 
         # security note: we don't want to say anything like "we couldn't find
         # that email" because it would allow people to fish for emails being
