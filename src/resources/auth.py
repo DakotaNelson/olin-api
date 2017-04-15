@@ -12,7 +12,8 @@ api = Api(auth)
 
 class RequestToken(Resource):
     def post(self):
-        """ Returns an access token against an email address which will be valid once the specified email address is verified (by clicking a link in an email sent to it) """
+        """ Returns an access token against an email address which will be valid once the specified
+        email address is verified (by clicking a link in an email sent to it) """
 
         params = request.get_json()
 
@@ -29,7 +30,6 @@ class RequestToken(Resource):
         validation_token = token.generate_validation_token()
 
         validation_url = api.url_for(ValidateToken,token=validation_token, _external=True)
-        print(validation_url)
         send_email(params['email'],
                    "Here's your Olin-API validation token",
                    "<a href=\"{}\">Click here</a>".format(validation_url))
@@ -40,6 +40,8 @@ class RequestToken(Resource):
 
 class ValidateToken(Resource):
     def get(self, token):
+        """ Given a validation token (what is sent in an email to the token requester's email address),
+        check that it is good, then mark the corresponding token as valid """
         if Token.verify_validation_token(token):
             resp = 'Success! The token returned from your previous API request is now valid for 24 hours.'
             return resp, 200
@@ -47,6 +49,10 @@ class ValidateToken(Resource):
             resp = 'Unable to validate authentication token. Your validation token is either invalid or expired.'
             return resp, 400
 
+class Authenticate(Resource):
+    def post(self):
+        """ Given an authentication token, returns a person profile OR a message stating the token is invalid """
+        raise NotImplementedError
 
 
 # Resources

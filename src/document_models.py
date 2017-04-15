@@ -2,7 +2,8 @@
 from flask import current_app
 
 from mongoengine import (Document, StringField, IntField, ListField,
-                         DictField, EmailField, BooleanField, DoesNotExist)
+                         DictField, EmailField, BooleanField, DoesNotExist,
+                         URLField)
 
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
                           URLSafeTimedSerializer,
@@ -55,8 +56,8 @@ class Token(Document):
     # email address the validation token is sent to
     validated = BooleanField(default=False)
 
-    def generate_token(self, expiration=86400):
-        """ Generate an authentication token, by default good for 24 hours """
+    def generate_token(self, expiration=86400 * 365):
+        """ Generate an authentication token, by default good for 1 year """
         serializer = Serializer(
             current_app.config['SECRET_KEY'], expires_in=expiration)
         return serializer.dumps({'email': self.email}).decode(encoding='UTF-8')
@@ -112,3 +113,36 @@ class Token(Document):
             return False
 
         return True
+
+class Application(Document):
+    # who can we contact about this application?
+    contact = EmailField(max_length=100, required=True)
+    # what is the application's name? (one contact can't have two identically
+    # named applications)
+    name = StringField(max_length=140, required=True, unique_with='contact')
+    # what is the application?
+    description = StringField()
+    # where can people learn more?
+    homepage = URLField()
+
+    def generate_token(self, expiration=86400 * 365 * 4):
+        """ Generate an authentication token, by default good for ~4 years """
+        serializer = Serializer(
+            current_app.config['SECRET_KEY'], expires_in=expiration)
+        return serializer.dumps({'contact': self.contact, 'name': self.name}).decode(encoding='UTF-8')
+
+    @staticmethod
+    def verify_token(token):
+        """ ensures that the application token passed to it is valid, returns
+        the correct app object based on the token passed to it """
+        serializer = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = serializer.loads(token)
+        except SignatureExpired:
+            return None # valid token, but expired
+        except BadSignature:
+            return None # invalid token
+        # otherwise, success!
+        app = Application.objects.get(contact=data['contact'], name=data['name'])
+        return app
+
