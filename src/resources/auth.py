@@ -98,7 +98,23 @@ class Authenticate(Resource):
     def post(self):
         """ Given an authentication token, returns a person profile OR a
         message stating the token is invalid """
-        raise NotImplementedError
+
+        params = request.get_json()
+
+        if not 'token' in params:
+            resp = {'message': 'Request must include \'token\' parameter.'}
+            return make_response(jsonify(resp), 400)
+
+        person = Token.verify_token(params['token'])
+
+        if person is None:
+            resp = {'message': 'Invalid auth token.', 'valid': False}
+            return make_response(jsonify(resp), 401)
+
+        resp = {'message': 'Success! Auth token is valid.', 'valid': True}
+        return make_response(jsonify(resp), 200)
+
+
 
 
 # Resources

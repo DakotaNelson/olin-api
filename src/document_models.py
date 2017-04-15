@@ -78,8 +78,11 @@ class Token(Document):
             return None # token not validated
 
         # otherwise, success!
-        person = Person.objects.get(email=data['email'])
-        return person
+        #person = Person.objects.get(email=data['email'])
+        # disabled - this creates an unfortunate linkage between the API types
+        # (i.e. what do we do if someone has no person profile but we still
+        # want to auth them?)
+        return True
 
     def generate_validation_token(self):
         """ Creates and saves an token to be sent in an email to the email
