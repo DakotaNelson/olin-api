@@ -122,4 +122,4 @@ class Authenticate(Resource):
 # Resources
 api.add_resource(Authenticate, '')
 api.add_resource(RequestToken, '/token')
-api.add_resource(ValidateToken, '/token/<token>/validate')
+api.add_resource(ValidateToken, '/token/validate/<token>')

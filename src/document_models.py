@@ -132,6 +132,9 @@ class Application(Document):
     description = StringField()
     # where can people learn more?
     homepage = URLField()
+    # 'validated' is marked as true once the user has confirmed they own the
+    # email address the validation token is sent to
+    validated = BooleanField(default=False)
 
     def generate_token(self, expiration=86400 * 365 * 4):
         """ Generate an authentication token, by default good for ~4 years """
@@ -154,3 +157,36 @@ class Application(Document):
         # otherwise, success!
         app = Application.objects.get(contact=data['contact'], name=data['name'])
         return app
+
+    def generate_validation_token(self):
+        """ Creates and saves an token to be sent in an email to the email
+        address provided during auth flow. This proves ownership of that
+        email by the user undertaking the auth flow."""
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        # 'salt' is actually a namespace - see:
+        # http://pythonhosted.org/itsdangerous/#the-salt
+        salt = current_app.config['VALIDATION_TOKEN_SALT']
+        return serializer.dumps(self.contact, salt=salt)
+
+    @staticmethod
+    def verify_validation_token(app, expiration=12*3600):
+        """ verifies a registration token, sets the 'validated' field of the
+        corresponding token to True """
+        salt = current_app.config['VALIDATION_TOKEN_SALT']
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        try:
+            email = serializer.loads(
+                app,
+                salt=salt,
+                max_age=expiration)
+        except:
+            return False
+        try:
+            appObj = Application.objects.get(contact=email)
+            appObj.validated = True
+            appObj.save()
+        except DoesNotExist:
+            # for some reason, we're validating an app that doesn't exist...
+            return False
+
+        return True

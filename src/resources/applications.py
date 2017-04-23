@@ -5,6 +5,7 @@ from flask import Blueprint, request, jsonify, make_response
 from flask_restful import Resource, Api
 from mongoengine.errors import NotUniqueError, ValidationError
 from ..document_models import Application
+from ..utils import send_email
 
 # Blueprint setup
 apps = Blueprint('apps', __name__)
@@ -39,7 +40,8 @@ class RegisterApp(Resource):
         # TODO conversion to bool is gross and mistake-prone
         if  bool(params['honorcode']) != True:
             # TODO include link to honor code
-            resp = {'message': 'You must agree to the Olin API Honor Code in order to use the Olin API.'}
+            resp = {'message': 'You must agree to the Olin API Honor Code'
+                               ' in order to use the Olin API.'}
             return make_response(jsonify(resp), 400)
 
         try:
@@ -58,10 +60,13 @@ class RegisterApp(Resource):
         try:
             app.save()
         except NotUniqueError:
-            resp = {"message": "Application with that name and contact email already exists."}
+            resp = {"message": "Application with that name and "
+                               "contact email already exists."}
             return make_response(jsonify(resp), 400)
         except ValidationError:
-            resp = {"message": "Application contact must be a properly formatted email address, and application name must be 140 characters or less."}
+            resp = {"message": "Application contact must be a properly "
+                               "formatted email address, and application name "
+                               "must be 140 characters or less."}
             return make_response(jsonify(resp), 400)
 
         # if the app successfully made it to the DB, add in its details
@@ -72,16 +77,103 @@ class RegisterApp(Resource):
         try:
             app.save()
         except ValidationError:
-            resp = {"message": "Application homepage must be a properly formatted URL. (Make sure to include \'http://\')"}
+            resp = {"message": "Application homepage must be a properly "
+                               "formatted URL. (Make sure to include "
+                               "\'http://\')"}
             app.delete()
             return make_response(jsonify(resp), 400)
 
         # generate and return application auth token
         token = app.generate_token()
 
-        resp = {'message': 'Success!', 'token': token}
+        # if creator's email isn't validated, send email with validation token
+        if not app.validated:
+            validation_token = app.generate_validation_token()
+
+            validation_url = api.url_for(ValidateApp,
+                                         token=validation_token,
+                                         _external=True)
+
+            send_email(params['contact'],
+                       "Here's your Olin-API validation token",
+                       "<a href=\"{}\">Click here</a>".format(validation_url))
+
+            resp = {'message': 'Success! Application will be valid once email '
+                               'has been proven.',
+                    'token': token,
+                    'validated': False}
+        else:
+            # token is already valid
+            resp = {'message': 'Success! Email has already been proven, so '
+                               'you\'re good to go.',
+                    'token': token,
+                    'validated': True}
+
         return make_response(jsonify(resp), 200)
+
+    # TODO some way to re-issue tokens
+    # we can't allow just anyone to delete an app, but if we require the app
+    # token to be included, what happens if they lose it? no way to re-issue
+    # (we have their email, so we could re-verify it with another token)
+
+    # def delete(self):
+    #     """ Deletes an app record, rendering the associated token
+    #     invalid and allowing for re-issuing a token. """
+    #
+    #     params = request.get_json()
+    #
+    #     # application point of contact email
+    #     if not 'contact' in params:
+    #         resp = {'message': 'Request must include \'contact\' parameter.'}
+    #         return make_response(jsonify(resp), 400)
+    #
+    #     # application name
+    #     if not 'name' in params:
+    #         resp = {'message': 'Request must include \'name\' parameter.'}
+    #         return make_response(jsonify(resp), 400)
+    #
+    #     Application.objects(contact=params['contact'],
+    #                         name=params['name']).delete()
+    #
+    #     # security note: we don't want to say anything like "we couldn't find
+    #     # that application" because it would allow people to fish for apps
+    #     # being used in the API
+    #     resp = {"message": "Success! If that application existed, it has been deleted."}
+    #     return make_response(jsonify(resp), 200)
+
+
+class ValidateApp(Resource):
+    def get(self, token):
+        """ Given a validation token (what is sent in an email to the token
+        requester's email address), check that it is good, then mark the
+        corresponding app as valid """
+        if Application.verify_validation_token(token):
+            resp = 'Success! Thanks!'
+            # TODO better message/page for user? include name of authorized app?
+            return resp, 200
+        else:
+            resp = ('Unable to validate authentication token. Your validation '
+                    'token is either invalid or expired.')
+            return resp, 400
+
+
+class ListApps(Resource):
+    def get(self):
+        """ List all currently registered applications """
+        apps = Application.objects()
+
+        # TODO return more information
+        apps_clean = []
+        for app in apps:
+            apps_clean.append(
+                {"name": app["name"]}
+            )
+
+        return make_response(jsonify(apps_clean), 200)
+
 
 
 # Resources
+api.add_resource(ListApps, '/all')
 api.add_resource(RegisterApp, '/register')
+api.add_resource(ValidateApp, '/validate/<token>')
