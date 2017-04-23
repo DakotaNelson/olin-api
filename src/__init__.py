@@ -1,3 +1,6 @@
+""" Contains all code for the Olin API.
+All setup code that's required for the entire module should go here """
+
 import os
 
 import sendgrid
