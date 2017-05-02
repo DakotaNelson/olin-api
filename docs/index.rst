@@ -2,18 +2,22 @@ Olin-API
 ========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
+   :glob:
 
-   components/auth
-   components/app
-   components/people
+   components/*
+
+
+Introduction
+------------
 
 Welcome to the `Olin-API <https://github.com/DakotaNelson/olin-api>`_ docs!
 
 Olin-api seeks to provide programmatic access to a wide variety of Olin College digital resources. It is meant to provide the foundation for a variety of student-built applications to benefit the community.
 
 The API is organized as a series of modules, each of which provides a unique service to those using it.
+
 
 :doc:`components/app`
 ---------------------

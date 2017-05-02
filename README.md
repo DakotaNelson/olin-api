@@ -35,9 +35,9 @@ In addition, you can add overrides in `run.py`, directly into the `app.run()` fu
 
 ### Authentication
 
- The authentication component allows for API users to prove that they own an email. Devlopers utilizing this component can then proceed with trust that the user controls the email account that they claim to be.
+The authentication component allows for API users to prove that they own an email. Devlopers utilizing this component can then proceed with trust that the user controls the email account that they claim to be.
 
- The auth flow is as such:
+The auth flow is as such:
 
 1. POST request is issued to `/auth` containing an email address. The API returns a JSON Web Signature (JWS) token (referred to here as the "auth token") and sends an email to the specified email address containing another token (referred to here as the "validation token").
 
@@ -47,7 +47,13 @@ In addition, you can add overrides in `run.py`, directly into the `app.run()` fu
 
 The largest oddity here is that the API does not store auth tokens: since they are tamper-proof and self-expiring cryptographic tokens, they do not need to be checked against a secure database. The API merely stores a structure which contains an email and a "validated" flag indicating whether or not that email currently has a valid token.
 
-Full authentication documentation can be found [here](AUTH.md).
+More information about the auth flow can be found in the [usage docs](http://olin-api.readthedocs.io).
 
+
+### Application
+
+The application component allows applications to register themselves, at which point they are issued an application token. The application token allows access to application-scoped resources.
+
+More information about the auth flow can be found in the [usage docs](http://olin-api.readthedocs.io).
 
 ### People
