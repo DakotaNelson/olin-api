@@ -1,4 +1,4 @@
-By accepting and using this Application Token, you are agreeing to abide by the following tenets:
+By accepting and using an Application Token from the Olin API, you are agreeing to abide by the following tenets:
 
 (note that "your application" is a close proxy for "the people developing your application")
 

@@ -1,0 +1,6 @@
+#SERVER_NAME='localhost'
+DEBUG=True
+SENDGRID_API_KEY="something"
+MONGODB_URI='127.0.0.1:27017'
+SECRET_KEY='abcde'
+VALIDATION_TOKEN_SALT='vwxyz'

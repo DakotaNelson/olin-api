@@ -16,11 +16,17 @@ The `./bin/` directory contains a number of scripts which will help you get star
 
 ## Quickstart
 
- First, make sure MongoDB is running and accepting connections. Then,
+First, make sure MongoDB is running and accepting connections. Then,
 
- `bin/setUpEnv.sh && bin/run.sh`
+`bin/setUpEnv.sh && bin/run.sh`
 
- Right now, configuration is stored both in `.env` and `instance/default_settings.py`. This is gross, and should be changed.
+### Configuration
+
+Right now, configuration is stored both in `.env` and `instance/default_settings.py`. This is gross, and should be changed.
+
+You will find examples of configuration variables stored in `.env.example` and `instance/example_settings.py`. These variables are not ready for production, but might let you run locally. Either way, you'll need to copy them to `.env` and `instance/default_settings.py`. `.env` is automatically sourced when you run `heroku local` (which is what `run.sh` relies on), which results in all of the key value pairs being present as environment variables in your shell available to the python process running olin-api. The `instance/default_settings.py` file is used by [Flask's configuration system](http://flask.pocoo.org/docs/0.12/config/). If you would like to use a different file, you can set the `FLASK_SETTINGS` variable in `.env` to whatever filename you'd like, and Flask will look for that filename in the `instance` folder.
+
+In addition, you can add overrides in `run.py`, directly into the `app.run()` function call. These will take precedence over anything in `.env` or `*_settings.py`
 
 
 # API Components
