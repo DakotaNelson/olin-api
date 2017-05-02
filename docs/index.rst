@@ -19,5 +19,6 @@ Endpoints
 
 .. autoflask:: src.app:create_app()
  :endpoints:
+ :undoc-static:
 
 

@@ -19,14 +19,13 @@ class PersonEndpoint(Resource):
 
     def get(self):
         """
-        Returns one or more user objects
+        Returns one or more user objects.
 
-        Params:
-            email       User's email address
-            fName       First name of the user
-            lName       Last name of the user
-            comYearMIN  Minimum community year of the user (inclusive)
-            comYearMAX  Maximum community year of the user (inclusive)
+        :param str email: User's email address
+        :param str fName: First name of the user
+        :param str lName: Last name of the user
+        :param int comYearMIN: Minimum community year of the user (inclusive)
+        :param int comYearMAX: Maximum community year of the user (inclusive)
         """
         try:
             params = request.args
@@ -73,20 +72,22 @@ class PersonEndpoint(Resource):
 
     def post(self):
         """
-        If requests.json's fields do not match those defined in the Person model, this fails. 
+        If requests.json's fields do not match those defined in the Person model, this fails.
         See documentation for src.document_models.Person for more details.
         """
+
+        # TODO add parameter documentation for sphinx
         try:
-            object = Person(**request.json) 
+            object = Person(**request.json)
             object.save()
             return {'response': {'ok': 1.0}, 'results': object.to_json()}
 
         except NotUniqueError:
             return {'response': {'ok': 0.0, 'error': "Email {} already exists".format(request.json['email'])}, 'results': None}
-            
+
         except Exception as e:
             return {'response': {'ok': 0.0, 'error': str(e)}, 'results': None}
-        
+
 
 
 

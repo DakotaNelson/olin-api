@@ -17,10 +17,18 @@ class RequestToken(Resource):
         valid once the specified email address is verified (by clicking a link
         in an email sent to it)
 
-        If called multiple times, will simply return the same auth token. """
+        If called multiple times, will simply return the same auth token.
+
+        :param str email: Email address to validate and return an access \
+                token for.
+        :param str apptoken: An application token verifying that the calling \
+                application has registered itself, provided a contact, agreed \
+                to the Olin API Honor code, etc.
+        """
 
         params = request.get_json()
 
+        # TODO rate limit, else we can be used to spam people
         if not 'email' in params:
             resp = {'message': 'Request must include \'email\' parameter.'}
             return resp, 400
@@ -66,13 +74,28 @@ class RequestToken(Resource):
 
     def delete(self):
         """ Deletes an access token record, rendering the associated token
-        invalid and allowing for re-issuing a token. """
+        invalid and allowing for re-issuing a token.
+
+        :param str email: Email for the token to delete.
+        :param str apptoken: An application token verifying that the calling \
+                application has registered itself, provided a contact, agreed \
+                to the Olin API Honor code, etc.
+        """
 
         params = request.get_json()
 
         if not 'email' in params:
             resp = {'message': 'Request must include \'email\' parameter.'}
             return resp, 400
+
+        if not 'apptoken' in params:
+            resp = {'message': 'Request must include \'apptoken\' parameter.'}
+            return resp, 400
+
+        app = Application.verify_token(params['apptoken'])
+        if app is None:
+            resp = {'message': 'Application token is invalid.'}
+            return resp, 401
 
         Token.objects(email=params['email']).delete()
 
@@ -87,7 +110,8 @@ class ValidateToken(Resource):
     def get(self, token):
         """ Given a validation token (what is sent in an email to the token
         requester's email address), check that it is good, then mark the
-        corresponding token as valid """
+        corresponding token as valid
+        """
         if Token.verify_validation_token(token):
             resp = 'Success! Thanks!'
             # TODO better message/page for user? include name of authorized app?
@@ -100,7 +124,11 @@ class ValidateToken(Resource):
 class Authenticate(Resource):
     def post(self):
         """ Given an authentication token, returns a person profile OR a
-        message stating the token is invalid """
+        message stating the token is invalid
+
+        :param str token: The authentication token to check.
+
+        """
 
         params = request.get_json()
 
