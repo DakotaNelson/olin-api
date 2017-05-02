@@ -12,7 +12,9 @@ api = Api(projects)
 
 
 class Project(Resource):
-    """ Allows for querying, editing, and inserting projects in the database """
+    """ Allows for querying, editing, and inserting projects in the database.
+    Not yet implemented.
+    """
 
     def get(self, query):
         raise NotImplementedError
